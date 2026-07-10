@@ -7,5 +7,5 @@ import java.lang.annotation.RetentionPolicy;
 @NameBinding
 @Retention(RetentionPolicy.RUNTIME)
 public @interface VerificarPerfil {
-    String[] value(); // Aqui passaremos os perfis aceitos: "ADMIN", "TESOUREIRO", "ASSOCIADO"
+    String[] value() default {}; // Aqui passaremos os perfis aceitos: "ADMIN", "TESOUREIRO", "ASSOCIADO"
 }
