@@ -5,13 +5,18 @@ import br.com.gerencial.model.Organizacao;
 import br.com.gerencial.model.PlanoCobranca;
 import br.com.gerencial.model.Transacao;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import java.util.List;
+import jakarta.ws.rs.core.SecurityContext;
 
 @ApplicationScoped
 public class TransacaoService {
+
+    @Inject
+    SecurityContext securityContext;
 
     public List<Transacao> listAll() {
         return Transacao.listAll();

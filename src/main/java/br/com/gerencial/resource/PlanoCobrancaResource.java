@@ -1,5 +1,6 @@
 package br.com.gerencial.resource;
 
+import br.com.gerencial.configuracoes.VerificarPerfil;
 import br.com.gerencial.model.PlanoCobranca;
 import br.com.gerencial.service.PlanoCobrancaService;
 import jakarta.inject.Inject;
@@ -11,6 +12,7 @@ import java.util.List;
 @Path("/api/planos-cobranca")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@VerificarPerfil({ "TESOUREIRO" })
 public class PlanoCobrancaResource {
 
     @Inject
