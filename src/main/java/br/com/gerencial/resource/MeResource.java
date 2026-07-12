@@ -1,15 +1,15 @@
 package br.com.gerencial.resource;
 
-import br.com.gerencial.configuracoes.VerificarPerfil;
 import br.com.gerencial.model.OrganizacaoAssociado;
+import br.com.gerencial.seguranca.configuracoes.UserInfoService;
+import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
 import io.quarkus.runtime.LaunchMode;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path("/api/me/organizacoes")
@@ -19,23 +19,22 @@ import java.util.stream.Collectors;
 public class MeResource {
 
     @Inject
-    JsonWebToken jwt;
+    UserInfoService userInfoService;
 
     @GET
-    public Response getMinhasOrganizacoes(@HeaderParam("X-Dev-User-Email") String devEmail) {
+    public Response getMinhasOrganizacoes() {
         String email = null;
-
-        System.out.println("teste");
 
         // Em modo DEV/TEST, permite passar o e-mail pelo header para testes locais
         if (LaunchMode.current() == LaunchMode.DEVELOPMENT || LaunchMode.current() == LaunchMode.TEST) {
-            if (devEmail != null && !devEmail.isEmpty()) {
-                email = devEmail;
+            String devEmail = userInfoService.getDevEmailFromHeader();
+            if (devEmail != null && !userInfoService.getDevEmailFromHeader().isEmpty()) {
+                email = userInfoService.getDevEmailFromHeader();
             }
         }
 
         if (email == null) {
-            email = jwt.getClaim("email");
+            email = userInfoService.getTokenEmail();
         }
 
         if (email == null) {

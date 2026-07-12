@@ -1,4 +1,4 @@
-package br.com.gerencial.configuracoes;
+package br.com.gerencial.seguranca.configuracoes;
 
 import jakarta.ws.rs.NameBinding;
 import java.lang.annotation.Retention;

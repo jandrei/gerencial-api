@@ -1,4 +1,4 @@
-package br.com.gerencial.seguranca;
+package br.com.gerencial.seguranca.filtes;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -7,16 +7,16 @@ import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import io.quarkus.runtime.LaunchMode;
-import br.com.gerencial.configuracoes.VerificarPerfil;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import br.com.gerencial.model.OrganizacaoAssociado;
+import br.com.gerencial.seguranca.configuracoes.UserInfoService;
+import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
 
 /**
  * Resumo da ópera:
@@ -37,7 +37,7 @@ import br.com.gerencial.model.OrganizacaoAssociado;
 public class PerfilSegurancaFilter implements ContainerRequestFilter {
 
     @Inject
-    JsonWebToken jwt;
+    UserInfoService securityDataService;
 
     @Context
     ResourceInfo resourceInfo; // Permite ler os parâmetros da anotação no método
@@ -46,7 +46,7 @@ public class PerfilSegurancaFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
         // Garante que o filtro controle apenas rotas sob /api
         String path = requestContext.getUriInfo().getPath();
-        if (true) {
+        if (!path.startsWith("/api")) {
             return;
         }
 
@@ -61,7 +61,7 @@ public class PerfilSegurancaFilter implements ContainerRequestFilter {
         }
 
         if (email == null) {
-            email = jwt.getClaim("email");
+            email = securityDataService.getTokenEmail();
         }
 
         if (email == null) {
@@ -79,6 +79,11 @@ public class PerfilSegurancaFilter implements ContainerRequestFilter {
 
         // 3. Descobre quais perfis o método atual aceita
         VerificarPerfil anotacao = resourceInfo.getResourceMethod().getAnnotation(VerificarPerfil.class);
+        if (anotacao == null || anotacao.value() == null) {
+            // pode passar pq a api requisita apenas alguem logado, mas nao requer perfil
+            // especifico
+            return;
+        }
         List<String> perfisPermitidos = Arrays.asList(anotacao.value());
 
         // 4. Consulta o Banco de Dados (Usando o Panache)

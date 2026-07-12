@@ -1,8 +1,8 @@
 package br.com.gerencial.resource;
 
-import br.com.gerencial.configuracoes.VerificarPerfil;
 import br.com.gerencial.model.Associado;
 import br.com.gerencial.model.OrganizacaoAssociado;
+import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
 import br.com.gerencial.service.AssociadoService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;

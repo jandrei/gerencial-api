@@ -1,7 +1,7 @@
 package br.com.gerencial.resource;
 
-import br.com.gerencial.configuracoes.VerificarPerfil;
 import br.com.gerencial.model.PlanoCobranca;
+import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
 import br.com.gerencial.service.PlanoCobrancaService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
