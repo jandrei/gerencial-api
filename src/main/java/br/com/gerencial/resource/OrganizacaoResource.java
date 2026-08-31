@@ -1,18 +1,19 @@
 package br.com.gerencial.resource;
 
 import br.com.gerencial.model.Organizacao;
-import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
+import br.com.gerencial.configuracoes.TemPermissao;
 import br.com.gerencial.service.OrganizacaoService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.List;
 
 @Path("/api/organizacoes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@VerificarPerfil({ "TESOUREIRO" })
+@TemPermissao(perfis = {"TESOUREIRO"})
 public class OrganizacaoResource {
 
     @Inject

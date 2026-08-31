@@ -1,4 +1,4 @@
-package br.com.gerencial.seguranca.filtes;
+package br.com.gerencial.configuracoes;
 
 import org.eclipse.microprofile.openapi.OASFactory;
 import org.eclipse.microprofile.openapi.OASFilter;
@@ -26,10 +26,10 @@ public class SwaggerHeaderFilter implements OASFilter {
                 .schema(OASFactory.createSchema().type(List.of(SchemaType.STRING)));
 
         Parameter tenantHeader = OASFactory.createParameter()
-                .name("X-Organization-Id")
+                .name("X-Organization")
                 .in(Parameter.In.HEADER)
-                .required(true)
-                .description("Identificador do Tenant para a requisição")
+                .required(false)
+                .description("Codigo do Tenant para a requisição")
                 .schema(OASFactory.createSchema().type(List.of(SchemaType.STRING)));
 
         operation.addParameter(userEmailHeader);

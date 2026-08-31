@@ -1,25 +1,30 @@
 package br.com.gerencial.service;
 
-import br.com.gerencial.model.Associado;
-import br.com.gerencial.model.Organizacao;
-import br.com.gerencial.model.PlanoCobranca;
-import br.com.gerencial.model.Transacao;
+import br.com.gerencial.configuracoes.DadosUsuarioProvider;
+import br.com.gerencial.model.*;
+import br.com.gerencial.resource.dto.CriarTransacaoDTO;
+import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 import jakarta.ws.rs.core.SecurityContext;
+import org.apache.commons.collections4.CollectionUtils;
 
 @ApplicationScoped
 public class TransacaoService {
 
     @Inject
     SecurityContext securityContext;
+    @Inject
+    DadosUsuarioProvider dadosUsuarioProvider;
 
-    public List<Transacao> listAll() {
-        return Transacao.listAll();
+    public List<Transacao> listAll(Page page) {
+        List<Transacao> list = Transacao.findAll()
+                .page(page)
+                .list();
+        return list;
     }
 
     public Transacao findById(Long id) {
@@ -31,38 +36,57 @@ public class TransacaoService {
     }
 
     @Transactional
-    public Transacao create(Transacao entity) {
-        if (entity == null || entity.id != null) {
-            throw new BadRequestException("ID não deve ser enviado em requisição POST");
-        }
-        if (entity.organizacao == null || entity.organizacao.id == null) {
-            throw new BadRequestException("Organização é obrigatória");
-        }
-
-        Organizacao org = Organizacao.findById(entity.organizacao.id);
+    public Transacao create(CriarTransacaoDTO criarTransacaoDTO) {
+        Organizacao org = Organizacao.findById(dadosUsuarioProvider.getHeaderOrganizacao());
         if (org == null) {
             throw new NotFoundException("Organização não encontrada");
         }
-        entity.organizacao = org;
+        Transacao transacao = new Transacao();
+        transacao.organizacao = org;
 
-        if (entity.associado != null && entity.associado.id != null) {
-            Associado ass = Associado.findById(entity.associado.id);
+        if (criarTransacaoDTO.associadoId != null ) {
+            Associado ass = Associado.findById(criarTransacaoDTO.associadoId);
             if (ass == null) {
                 throw new NotFoundException("Associado não encontrado");
             }
-            entity.associado = ass;
+            transacao.associado = ass;
         }
 
-        if (entity.planoCobranca != null && entity.planoCobranca.id != null) {
-            PlanoCobranca plano = PlanoCobranca.findById(entity.planoCobranca.id);
+        if (criarTransacaoDTO.planoCobrancaId != null) {
+            PlanoCobranca plano = PlanoCobranca.findById(criarTransacaoDTO.planoCobrancaId);
             if (plano == null) {
                 throw new NotFoundException("Plano de Cobrança não encontrado");
             }
-            entity.planoCobranca = plano;
+            transacao.planoCobranca = plano;
         }
 
-        entity.persist();
-        return entity;
+        transacao.valor = criarTransacaoDTO.valor;
+        transacao.dataPagamento = criarTransacaoDTO.dataPagamento;
+        transacao.tipo = criarTransacaoDTO.tipo;
+        transacao.status = criarTransacaoDTO.status;
+
+        // 2. Busca todas as tags existentes de uma só vez (Muito mais rápido!)
+        if (CollectionUtils.isNotEmpty(criarTransacaoDTO.nomesTags)) {
+            List<Tag> tagsExistentes = Tag.list("descricao in ?1", criarTransacaoDTO.nomesTags);
+
+            if (tagsExistentes.size() != criarTransacaoDTO.nomesTags.size()) {
+                List<String> tagsExistentesDescricoes = tagsExistentes.stream().map(t -> t.descricao)
+                        .toList();
+                List<Tag> tagsNovas = criarTransacaoDTO.nomesTags.stream()
+                        .filter(tagName-> !tagsExistentesDescricoes.contains(tagName))
+                        .map(Tag::new)
+                        .toList();
+                Tag.persist(tagsNovas);
+                tagsExistentes.addAll(tagsNovas);
+            }
+
+            for (Tag tag : tagsExistentes) {
+                transacao.adicionarTag(tag);
+            }
+        }
+
+        transacao.persist();
+        return transacao;
     }
 
     @Transactional

@@ -1,4 +1,4 @@
-package br.com.gerencial.seguranca.filtes;
+package br.com.gerencial.configuracoes;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import br.com.gerencial.model.OrganizacaoAssociado;
-import br.com.gerencial.seguranca.configuracoes.UserInfoService;
-import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
 
 /**
  * Resumo da ópera:
@@ -33,11 +31,11 @@ import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
  * banco de dados para ele nunca ver o saldo ou as contas dos outros membros.
  */
 @Provider
-@VerificarPerfil({}) // Vincula o filtro à nossa anotação
-public class PerfilSegurancaFilter implements ContainerRequestFilter {
+@TemPermissao()
+public class FiltroPermissao implements ContainerRequestFilter {
 
     @Inject
-    UserInfoService securityDataService;
+    DadosUsuarioProvider securityDataService;
 
     @Context
     ResourceInfo resourceInfo; // Permite ler os parâmetros da anotação no método
@@ -70,21 +68,22 @@ public class PerfilSegurancaFilter implements ContainerRequestFilter {
         }
 
         // 2. Recupera a Organização Atual enviada pelo Frontend
-        String codigoOrganizacao = requestContext.getHeaderString("X-Organization-Id");
+        String codigoOrganizacao = requestContext.getHeaderString("X-Organization");
         if (codigoOrganizacao == null || codigoOrganizacao.isEmpty()) {
             requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("O cabeçalho X-Organization-Id é obrigatório.").build());
+                    .entity("O cabeçalho X-Organization é obrigatório.").build());
             return;
         }
 
         // 3. Descobre quais perfis o método atual aceita
-        VerificarPerfil anotacao = resourceInfo.getResourceMethod().getAnnotation(VerificarPerfil.class);
-        if (anotacao == null || anotacao.value() == null) {
+        TemPermissao anotacao = resourceInfo.getResourceMethod().getAnnotation(TemPermissao.class);
+        //TODO precisa ser melhor testado e validado isso, nao tem cara boa
+        if (anotacao == null || anotacao.perfis() == null || anotacao.permissoes() == null) {
             // pode passar pq a api requisita apenas alguem logado, mas nao requer perfil
-            // especifico
+            // especifico nem permissao especifica
             return;
         }
-        List<String> perfisPermitidos = Arrays.asList(anotacao.value());
+        List<String> perfisDaSessao = Arrays.asList(anotacao.perfis());
 
         // 4. Consulta o Banco de Dados (Usando o Panache)
         // Aqui buscamos o perfil do associado especificamente nesta organização
@@ -102,8 +101,7 @@ public class PerfilSegurancaFilter implements ContainerRequestFilter {
             return; // Acesso liberado
         }
 
-        // 5. Valida se o perfil do usuário está na lista dos permitidos para a API
-        if (!perfisPermitidos.contains(perfilDoUsuario)) {
+        if (!perfisDaSessao.contains(perfilDoUsuario)) {
             requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
                     .entity("Seu perfil (" + perfilDoUsuario + ") não tem permissão para esta ação.").build());
         }

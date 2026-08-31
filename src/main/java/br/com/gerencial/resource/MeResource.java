@@ -1,9 +1,9 @@
 package br.com.gerencial.resource;
 
 import br.com.gerencial.model.OrganizacaoAssociado;
-import br.com.gerencial.seguranca.configuracoes.UserInfoService;
-import br.com.gerencial.seguranca.configuracoes.VerificarPerfil;
-import io.quarkus.runtime.LaunchMode;
+import br.com.gerencial.configuracoes.DadosUsuarioProvider;
+import br.com.gerencial.configuracoes.TemPermissao;
+import br.com.gerencial.resource.dto.OrganizacaoVinculoDTO;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,27 +15,14 @@ import java.util.stream.Collectors;
 @Path("/api/me/organizacoes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@VerificarPerfil
 public class MeResource {
 
     @Inject
-    UserInfoService userInfoService;
+    DadosUsuarioProvider dadosUsuarioProvider;
 
     @GET
     public Response getMinhasOrganizacoes() {
-        String email = null;
-
-        // Em modo DEV/TEST, permite passar o e-mail pelo header para testes locais
-        if (LaunchMode.current() == LaunchMode.DEVELOPMENT || LaunchMode.current() == LaunchMode.TEST) {
-            String devEmail = userInfoService.getDevEmailFromHeader();
-            if (devEmail != null && !userInfoService.getDevEmailFromHeader().isEmpty()) {
-                email = userInfoService.getDevEmailFromHeader();
-            }
-        }
-
-        if (email == null) {
-            email = userInfoService.getTokenEmail();
-        }
+        String email = dadosUsuarioProvider.getEmailFromHeaderOrFromToken();
 
         if (email == null) {
             return Response.status(Response.Status.UNAUTHORIZED)
@@ -58,18 +45,5 @@ public class MeResource {
         return Response.ok(dtos).build();
     }
 
-    public static class OrganizacaoVinculoDTO {
-        public String codigo;
-        public String nomeFantasia;
-        public String perfil;
 
-        public OrganizacaoVinculoDTO() {
-        }
-
-        public OrganizacaoVinculoDTO(String codigo, String nomeFantasia, String perfil) {
-            this.codigo = codigo;
-            this.nomeFantasia = nomeFantasia;
-            this.perfil = perfil;
-        }
-    }
 }

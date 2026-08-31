@@ -1,7 +1,7 @@
 -- 1. Inserir a Organização (Moto Clube)
 -- Gerando o ID público 'MOTO1' com 5 dígitos alfanuméricos
-INSERT INTO organizacoes (nome_fantasia, razao_social, documento, tipo_negocio, ativo)
-VALUES ('Roncadores do Asfalto', 'Associação Moto Clube Roncadores', '12345678000199', 'MOTO_CLUBE', true);
+INSERT INTO organizacoes (codigo, nome_fantasia, razao_social, documento, tipo_negocio, ativo)
+VALUES ('RONCADORES01', 'Roncadores do Asfalto', 'Associação Moto Clube Roncadores','12345678000199','MOTO_CLUBE',true);
 
 -- 2. Inserir o Associado (Cadastro Global do Usuário)
 -- O e-mail deve ser o mesmo que virá no Token do Google durante o login
