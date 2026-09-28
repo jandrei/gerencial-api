@@ -19,7 +19,7 @@ import java.util.List;
 @Path("/api/usuarios-transacoes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class UsuariosTransacoesResource {
+public class UsuariosTransacoesController {
 
     @Inject
     OrganizacaoService organizacaoService;

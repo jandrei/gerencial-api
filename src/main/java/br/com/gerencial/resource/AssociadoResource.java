@@ -1,13 +1,16 @@
 package br.com.gerencial.resource;
 
-import br.com.gerencial.model.Associado;
-import br.com.gerencial.model.OrganizacaoAssociado;
 import br.com.gerencial.configuracoes.TemPermissao;
+import br.com.gerencial.mapper.AssociadoMapper;
+import br.com.gerencial.mapper.OrganizacaoAssociadoMapper;
+import br.com.gerencial.resource.dto.AssociadoDTO;
+import br.com.gerencial.resource.dto.OrganizacaoAssociadoDTO;
 import br.com.gerencial.service.AssociadoService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.List;
 
 @Path("/api/associados")
@@ -19,31 +22,33 @@ public class AssociadoResource {
     @Inject
     AssociadoService service;
 
-    // =========================================================================
-    // Associado CRUD
-    // =========================================================================
+    @Inject
+    AssociadoMapper associadoMapper;
+
+    @Inject
+    OrganizacaoAssociadoMapper vinculoMapper;
 
     @GET
-    public List<Associado> listAll() {
-        return service.listAll();
+    public List<AssociadoDTO> listAll() {
+        return service.listAll().stream().map(associadoMapper::toDto).toList();
     }
 
     @GET
     @Path("/{id}")
-    public Associado getById(@PathParam("id") Long id) {
-        return service.findById(id);
+    public AssociadoDTO getById(@PathParam("id") Long id) {
+        return associadoMapper.toDto(service.findById(id));
     }
 
     @POST
-    public Response create(Associado entity) {
-        Associado created = service.create(entity);
-        return Response.status(Response.Status.CREATED).entity(created).build();
+    public Response create(AssociadoDTO dto) {
+        var created = service.create(associadoMapper.toEntity(dto));
+        return Response.status(Response.Status.CREATED).entity(associadoMapper.toDto(created)).build();
     }
 
     @PUT
     @Path("/{id}")
-    public Associado update(@PathParam("id") Long id, Associado entity) {
-        return service.update(id, entity);
+    public AssociadoDTO update(@PathParam("id") Long id, AssociadoDTO dto) {
+        return associadoMapper.toDto(service.update(id, associadoMapper.toEntity(dto)));
     }
 
     @DELETE
@@ -58,33 +63,33 @@ public class AssociadoResource {
 
     @GET
     @Path("/vinculos")
-    public List<OrganizacaoAssociado> listAllVinculos() {
-        return service.listAllVinculos();
+    public List<OrganizacaoAssociadoDTO> listAllVinculos() {
+        return service.listAllVinculos().stream().map(vinculoMapper::toDto).toList();
     }
 
     @GET
     @Path("/vinculos/{id}")
-    public OrganizacaoAssociado getVinculoById(@PathParam("id") Long id) {
-        return service.findVinculoById(id);
+    public OrganizacaoAssociadoDTO getVinculoById(@PathParam("id") Long id) {
+        return vinculoMapper.toDto(service.findVinculoById(id));
     }
 
     @GET
     @Path("/{id}/vinculos")
-    public List<OrganizacaoAssociado> getVinculosByAssociado(@PathParam("id") Long associadoId) {
-        return service.findVinculosByAssociado(associadoId);
+    public List<OrganizacaoAssociadoDTO> getVinculosByAssociado(@PathParam("id") Long associadoId) {
+        return service.findVinculosByAssociado(associadoId).stream().map(vinculoMapper::toDto).toList();
     }
 
     @POST
     @Path("/vinculos")
-    public Response createVinculo(OrganizacaoAssociado vinculo) {
-        OrganizacaoAssociado created = service.createVinculo(vinculo);
-        return Response.status(Response.Status.CREATED).entity(created).build();
+    public Response createVinculo(OrganizacaoAssociadoDTO dto) {
+        var created = service.createVinculo(vinculoMapper.toEntity(dto));
+        return Response.status(Response.Status.CREATED).entity(vinculoMapper.toDto(created)).build();
     }
 
     @PUT
     @Path("/vinculos/{id}")
-    public OrganizacaoAssociado updateVinculo(@PathParam("id") Long id, OrganizacaoAssociado vinculo) {
-        return service.updateVinculo(id, vinculo);
+    public OrganizacaoAssociadoDTO updateVinculo(@PathParam("id") Long id, OrganizacaoAssociadoDTO dto) {
+        return vinculoMapper.toDto(service.updateVinculo(id, vinculoMapper.toEntity(dto)));
     }
 
     @DELETE
